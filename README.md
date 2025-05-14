@@ -4,7 +4,7 @@
 ![Platform](https://img.shields.io/badge/Support%20Platform-Windows-blue.svg)
 [![License](https://img.shields.io/badge/License-wxWidgets-blue.svg)](https://github.com/sht2017/frida-clr.net-patch/blob/main/COPYING)
 [![Generate Patch](https://github.com/sht2017/frida-clr.net-patch/actions/workflows/CI.yaml/badge.svg)](https://github.com/sht2017/frida-clr.net-patch/actions/workflows/CI.yaml)
-[![Latest Release](https://img.shields.io/github/v/release/sht2017/frida-clr.net?label=Latest%20Release)](https://github.com/sht2017/frida-clr.net/releases/latest)
+[![Latest Release](https://img.shields.io/github/v/release/sht2017/frida-clr.net)](https://github.com/sht2017/frida-clr.net/releases/latest)
 
 Automatically generates patches for Frida CLR (.NET) bindings when new Frida versions are released.
 
