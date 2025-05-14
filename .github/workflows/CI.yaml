@@ -1,0 +1,94 @@
+name: Generate Patch
+
+on:
+    schedule:
+        - cron: "0 0 * * *"
+    workflow_dispatch:
+
+permissions:
+    contents: write
+
+jobs:
+    generate-patch:
+        env:
+            USER: frida
+            REPO: frida
+
+        outputs:
+            LATEST_RELEASE: ${{ steps.check_release.outputs.LATEST_RELEASE }}
+            NEED_UPDATE: ${{ steps.check_release.outputs.NEED_UPDATE }}
+
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+
+            - name: Configure Git
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+            - name: Check for New Release
+              id: check_release
+              run: |
+                  LATEST_RELEASE=$(curl -s https://api.github.com/repos/${{ env.USER }}/${{ env.REPO }}/releases/latest | jq -r .tag_name)
+                  echo "Found latest release: $LATEST_RELEASE"
+
+                  NEED_UPDATE=true
+                  if [ "${{ github.event_name }}" != "workflow_dispatch" ] && [ -f .version ]; then
+                      if [ "$(cat .version)" == "$LATEST_RELEASE" ]; then
+                      echo "Already on the latest version: $LATEST_RELEASE"
+                      NEED_UPDATE=false
+                      fi
+                  fi
+
+                  echo "LATEST_RELEASE=$LATEST_RELEASE" >> $GITHUB_OUTPUT
+                  echo "NEED_UPDATE=$NEED_UPDATE" >> $GITHUB_OUTPUT
+
+            - name: Clone Repository
+              if: steps.check_release.outputs.NEED_UPDATE == 'true'
+              run: |
+                  pushd a
+                  git clone --recurse-submodules https://github.com/${{ env.USER }}/${{ env.REPO }}.git
+                  cd ${{ env.REPO }}
+                  git checkout ${{ steps.check_release.outputs.LATEST_RELEASE }}
+                  popd
+
+            - name: Compare Diff
+              if: steps.check_release.outputs.NEED_UPDATE == 'true'
+              run: |
+                  find b -type f | sed 's#^b/##' | while IFS= read -r f; do
+                  if [[ -f "a/$f" ]]; then
+                      diff -u -U5 "a/$f" "b/$f" || true
+                  else
+                      diff -u -U5 /dev/null "b/$f" || true
+                  fi
+                  done >> diff.patch
+
+            - name: Update Version
+              if: steps.check_release.outputs.NEED_UPDATE == 'true'
+              run: |
+                  if ! [ -f .version ] || [ "$(cat .version)" != "${{ steps.check_release.outputs.LATEST_RELEASE }}" ]; then
+                    echo "${{ steps.check_release.outputs.LATEST_RELEASE }}" > .version
+                    git add .version
+                    git commit -m "Update to version ${{ steps.check_release.outputs.LATEST_RELEASE }}"
+                    git push
+                  fi
+
+            - name: Upload release artifacts
+              if: steps.check_release.outputs.NEED_UPDATE == 'true'
+              uses: softprops/action-gh-release@v1
+              with:
+                  tag_name: ${{ steps.check_release.outputs.LATEST_RELEASE }}
+                  body: Automatically generated patch for ${{ steps.check_release.outputs.LATEST_RELEASE }}
+                  files: diff.patch
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Trigger Build and Release workflow
+              if: steps.check_release.outputs.NEED_UPDATE == 'true'
+              run: |
+                  curl -XPOST -H "Accept: application/vnd.github.v3+json" \
+                       -H "Authorization: token ${{ secrets.ACCESS_TOKEN }}" \
+                       https://api.github.com/repos/sht2017/frida-clr.net/dispatches \
+                       -d '{"event_type": "patch_updated"}'
