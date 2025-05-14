@@ -3,8 +3,8 @@
 [![.NET](https://img.shields.io/badge/.NET-9.0-blue.svg)](https://dotnet.microsoft.com/download/dotnet/9.0)
 ![Platform](https://img.shields.io/badge/Support%20Platform-Windows-blue.svg)
 [![License](https://img.shields.io/badge/License-wxWidgets-blue.svg)](https://github.com/sht2017/frida-clr.net-patch/blob/main/COPYING)
-[![Latest Release](https://img.shields.io/github/v/release/sht2017/frida-clr.net-patch?label=Latest%20Release)](https://github.com/sht2017/frida-clr.net-patch/releases/latest)
 [![Generate Patch](https://github.com/sht2017/frida-clr.net-patch/actions/workflows/CI.yaml/badge.svg)](https://github.com/sht2017/frida-clr.net-patch/actions/workflows/CI.yaml)
+[![Latest Release](https://img.shields.io/github/v/release/sht2017/frida-clr.net?label=Latest%20Release)](https://github.com/sht2017/frida-clr.net/releases/latest)
 
 Automatically generates patches for Frida CLR (.NET) bindings when new Frida versions are released.
 
@@ -21,9 +21,14 @@ The patches migrate Frida CLR from the legacy .NET Framework to modern .NET, ena
 - Support for .NET 9.0
 - Migrated from WPF dependencies to system-agnostic rendering
 
-## Usage
+## Build
 
-...
+Go check [CI](https://github.com/sht2017/frida-clr.net/blob/main/.github/workflows/CI.yml).
+
+## Usage
+1. Download the [latest release](https://github.com/sht2017/frida-clr.net/releases/latest) with your targeted architecture.
+2. Import the `Frida.dll` into your project.
+3. Enjoy!
 
 ## Todo
 - [ ] ~~Add support for other platforms~~ **No plan for now, open to PRs**
